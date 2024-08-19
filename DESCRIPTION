@@ -1,0 +1,55 @@
+Package: SpatTruncKrig
+Title: Spatial Truncated Normal Kriging
+Version: 0.0.1
+Authors@R: 
+    c(person(
+                given = "Wen-Ting", 
+                family = "Wang", 
+                email = "egpivo@gmail.com", 
+                role = c("aut", "cre"), 
+                comment = c(ORCID = "0000-0003-3051-7302")
+              ),
+      person(
+                given = "Hsin-Cheng", 
+                family = "Huang", 
+                email = "hchuang@stat.sinica.edu.tw", 
+                role = "aut", 
+                comment = c(ORCID = "0000-0002-5613-349X")
+              )
+    )
+Description: Provides tools for spatial kriging using a truncated normal distribution approach. 
+             The package is designed for advanced spatial analysis and modeling, particularly 
+             where standard kriging techniques may struggle due to boundary or ranking issues.
+License: BSD 3-Clause License
+LazyData: true
+ByteCompile: true
+BugReports: https://github.com/SpaceTimeViz/SpatTruncKrig/
+Depends: 
+    R (>= 3.4.0)
+Imports: 
+    dplyr,
+    ggplot2,
+    sf,
+    truncnorm,
+    mvtnorm,
+    fields,
+    Matrix,
+    gstat
+Suggests: 
+    knitr,
+    rmarkdown,
+    testthat,
+    ggspatial,
+    gridExtra,
+    autoFRK,
+    GpGp,
+    patchwork,
+    cowplot,
+    geoR
+SystemRequirements: GNU make
+VignetteBuilder: knitr
+Encoding: UTF-8
+RoxygenNote: 7.2.3
+Roxygen: list(markdown = TRUE)
+URL: https://github.com/SpaceTimeViz/SpatTruncKrig/
+Config/testthat/edition: 3

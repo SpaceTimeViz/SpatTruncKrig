@@ -1,0 +1,28 @@
+#' @useDynLib SpatTruncKrig, .registration = TRUE
+#' @importFrom dplyr %>% mutate filter arrange
+#' @importFrom ggplot2 ggplot geom_point geom_line
+#' @importFrom sf st_read st_transform st_coordinates
+#' @importFrom truncnorm rtruncnorm
+#' @importFrom mvtnorm rmvnorm
+#' @importFrom fields rdist
+#' @importFrom Matrix solve
+#' @importFrom gstat variogram krige
+NULL
+
+export(findBB)
+export(bounding_box_imformation_function)
+export(Histogram_Equalization)
+export(box_image_f)
+export(contrast_image_f)
+export(filter_image_f)
+export(pad_image_f)
+export(erosion_image_list_f)
+export(euclidean_distance)
+export(getmode)
+export(knn_image_f)
+export(softmax)
+export(data_pre_processing_f)
+export(preprocessing_image_list)
+export(select_image_size)
+export(image_preprocessing_function)
+export(predict_function)
