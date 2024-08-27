@@ -10,3 +10,5 @@
 ^NEWS$
 LICENSE
 \.github
+^doc$
+^Meta$

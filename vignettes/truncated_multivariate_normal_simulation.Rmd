@@ -1,0 +1,233 @@
+---
+title: "Truncated Multivariate Normal Simulation"
+author: "Wen-Ting Wang"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Truncated Multivariate Normal Simulation}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+fig_caption: yes
+html_notebook:
+  code_folding: hide
+  toc: true
+  toc_depth: 2
+  toc_float: true
+---
+## Summary
+
+This vignette demonstrates the simulation and visualization of multivariate normal and truncated multivariate normal data using Matern covariance functions. We define a grid of locations, apply basis functions to generate mean functions, and simulate both non-truncated and truncated multivariate normal samples.
+
+### Data Generation Formula
+
+1. **Multivariate Normal Distribution:**
+   \[
+   Y(\mathbf{s}) \sim \text{MVN}(\mu(\mathbf{s}), \Sigma)
+   \]
+   where:
+   - \( \mu(\mathbf{s}) = \beta \cdot \phi(\mathbf{s}) \)
+   - **Basis Function:** \(\phi(\mathbf{s}) = \cos(\sqrt{(s_1 - 0)^2 + (s_2 - 1)^2} \times \pi)\)
+   - **Coefficient:** \(\beta = 5\)
+   - **Matern Covariance  (\(\Sigma\)) Parameters:**
+     - \(\sigma^2 = 1\)
+     - \(\rho = 0.2\)
+     - \(\nu = 1.5\)
+
+2. **Truncated Multivariate Normal Distribution:**
+   \[
+   Y(\mathbf{s}) \sim \text{Truncated MVN}(\mu(\mathbf{s}), \Sigma, a(\mathbf{s}), b(\mathbf{s}))
+   \]
+   with the same \(\mu(\mathbf{s})\) and \(\Sigma\) as above, and:
+   - **Truncation Bounds:** \([-5, 5]\)
+
+
+
+```{r setup, include=FALSE}
+library(VeccTMVN)
+library(MASS)
+library(ggplot2)
+library(gridExtra)
+library(gganimate)
+library(gifski)
+library(ggplot2)
+library(viridis)
+library(grid)
+library(cowplot)
+```
+
+## Define Grid and Basis Function
+```{r, echo=FALSE, message=FALSE, warning=FALSE,fig.width=7, fig.height=7}
+# Define the grid and basis function
+p <- 20
+grid1 <- grid2 <- seq(0, 1, length.out = p)
+grids <- expand.grid(grid1, grid2)
+
+# Define one basis function
+fn <- matrix(0, p^2, 1)
+fn[, 1] <- cos(sqrt((grids[, 1] - 0)^2 + (grids[, 2] - 1)^2) * pi)
+beta <- c(5)
+mu <- fn %*% beta
+
+plot_data <- data.frame(
+  s1 = grids[, 1],
+  s2 = grids[, 2],
+  basis = fn[, 1]
+)
+ggplot(plot_data, aes(x = s1, y = s2, fill = basis)) +
+  geom_tile() +
+  scale_fill_viridis_c() +
+  labs(title = "Basis Function") +
+  theme_minimal()
+```
+
+## Define Matern Covariance Function
+```{r, echo=FALSE, message=FALSE, warning=FALSE,  fig.width=7, fig.height=7}
+# Function to calculate Matern covariance
+matern_cov <- function(locs, rho = 0.2, sigma2 = 1, nu = 1.5) {
+  dist_matrix <- as.matrix(dist(locs))
+  cov_matrix <- sigma2 * (1 + sqrt(3) * dist_matrix / rho) * exp(-sqrt(3) * dist_matrix / rho)
+  return(cov_matrix)
+}
+
+grid1 <- grid2 <- seq(0, 1, length.out = p)
+grids <- expand.grid(grid1, grid2)
+cov_matrix <- matern_cov(grids, rho = 0.2, sigma2 = 1, nu = 1.5)
+
+# Function to create a plot for a specific reference point
+create_covariance_plot <- function(reference_point_index) {
+  reference_point <- grids[reference_point_index, ]
+  cov_with_reference <- cov_matrix[reference_point_index, ]
+  
+  plot_data <- data.frame(
+    s1 = grids[, 1],
+    s2 = grids[, 2],
+    covariance = cov_with_reference
+  )
+  
+  plot <- ggplot(plot_data, aes(x = s1, y = s2, fill = covariance)) +
+    geom_tile() +
+    scale_fill_viridis_c() +
+    labs(
+      title = paste0("Reference Point: (", 
+                     round(reference_point[1], 2), ", ", 
+                     round(reference_point[2], 2), ")"),
+      x = expression(s[21]),
+      y = expression(s[22])
+    ) +
+    theme_minimal() +
+    theme(plot.title = element_text(hjust = 0.5))
+  
+  return(plot)
+}
+
+# Create plots for four different reference points
+plot1 <- create_covariance_plot(1)       # Top-left corner
+plot2 <- create_covariance_plot(p^2 / 60)     # Bottom-right corner
+plot3 <- create_covariance_plot(p^2 / 2.2)       # Top-right corner
+plot4 <- create_covariance_plot(p^2 / 1.3) # Bottom-left corner
+
+# Arrange plots in a 2x2 grid
+# Combine plots and share a common legend
+combined_plot <- plot_grid(
+  plot1 + theme(legend.position = "none"),
+  plot2 + theme(legend.position = "none"),
+  plot3 + theme(legend.position = "none"),
+  plot4 + theme(legend.position = "none"),
+  ncol = 2
+)
+
+# Extract legend from one of the plots
+legend <- get_legend(plot1)
+
+# Combine the combined plot and the legend
+final_plot <- plot_grid(
+  combined_plot,
+  legend,
+  rel_widths = c(4, 0.5)
+)
+
+# Add a main title using textGrob
+main_title <- textGrob(
+  label = expression(paste("Matern Covariance Matrix with Parameters: ", 
+                           sigma^2, "=1, ", rho, "=0.2, ", nu, "=1.5")),
+  gp = gpar(fontsize = 16, fontface = "bold")
+)
+
+# Combine the title and the plot with the legend
+final_combined_plot <- plot_grid(
+  main_title,
+  final_plot,
+  ncol = 1,
+  rel_heights = c(0.1, 1)
+)
+
+# Display the final combined plot
+print(final_combined_plot)
+```
+
+## Simulate Multivariate Normal Data
+```{r create-non-truncated-animation, echo=FALSE, message=FALSE, warning=FALSE, fig.width=7, fig.height=7, fig.cap="Animated plot of multivariate normal samples"}
+set.seed(123)
+non_truncated_samples <- MASS::mvrnorm(n = 10, mu = as.vector(mu), Sigma = cov_matrix)
+
+plot_data_non_truncated_combined <- do.call(rbind, lapply(1:nrow(non_truncated_samples), function(i) {
+  data.frame(
+    s1 = grids[, 1],
+    s2 = grids[, 2],
+    observed = non_truncated_samples[i, ],
+    sample_id = i
+  )
+}))
+
+# Create the animated plot with transition_time
+anim_non_truncated <- ggplot(plot_data_non_truncated_combined, aes(x = s1, y = s2, fill = observed)) +
+  geom_tile() +
+  scale_fill_viridis_c() +
+  labs(title = "Non-Truncated Gaussian Process Data", subtitle = 'Sample: {frame}') +
+  theme_minimal() +
+  transition_time(sample_id)
+
+animate(anim_non_truncated, renderer = gifski_renderer(loop = TRUE), nframes = nrow(non_truncated_samples), fps = 5)
+```
+
+## Simulate Truncated Multivariate Normal Data
+```{r create-animation, echo=FALSE, message=FALSE, warning=FALSE, fig.width=7, fig.height=7, fig.cap="Animated plot of truncated multivariate normal samples"}
+# Define the truncation bounds
+lower_bound <- rep(-4, length(mu))
+upper_bound <- rep(4, length(mu))
+fill_range <- range(non_truncated_samples)
+
+# Generate multivariate truncated normal samples
+set.seed(123)
+truncated_samples <- mvrandn(
+  lower = lower_bound,
+  upper = upper_bound,
+  mean = as.vector(mu),
+  locs = grids,
+  m = 30,
+  N = 10,
+  sigma = cov_matrix
+)
+
+# Convert data to a dataframe for plotting
+plot_data_combined <- do.call(rbind, lapply(1:ncol(truncated_samples), function(i) {
+  data.frame(
+    s1 = grids[, 1],
+    s2 = grids[, 2],
+    observed = truncated_samples[, i],
+    sample = i
+  )
+}))
+
+anim <- ggplot(plot_data_combined, aes(x = s1, y = s2, fill = observed)) +
+  geom_tile() +
+  scale_fill_viridis_c(limits = fill_range) +
+  labs(
+    title = bquote("Observed Data (Truncated Normal) [Bounds: (" ~ .(-4) ~ "," ~ .(4) ~ ")]"),
+    subtitle = 'Sample: {frame}'
+  ) +
+  theme_minimal() +
+  transition_manual(frames = sample)
+# Display the animation in the vignette
+animate(anim, renderer = gifski_renderer(loop = TRUE), nframes = ncol(truncated_samples), fps = 5)
+```

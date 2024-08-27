@@ -10,6 +10,8 @@ test_that("plot_truncated_normal produces a ggplot object", {
 })
 
 test_that("plot_truncated_normal handles invalid input gracefully", {
-  expect_error(plot_truncated_normal(cov = "invalid", lower = c(-1, -1), upper = c(1, 1), y = 0.5, plot_type = "scatter"),
-               "Invalid input: 'cov' must be a numeric value of length 1.")
+  expect_error(
+    plot_truncated_normal(cov = "invalid", lower = c(-1, -1), upper = c(1, 1), y = 0.5, plot_type = "scatter"),
+    "Covariance must be a numeric value."
+  )
 })
