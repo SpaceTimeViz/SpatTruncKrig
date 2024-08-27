@@ -36,7 +36,11 @@ Imports:
     Matrix,
     gstat,
     tmvtnorm,
-    VeccTMVN
+    VeccTMVN,
+    gganimate,
+    gifski,
+    viridis,
+    grid
 Suggests: 
     knitr,
     rmarkdown,
