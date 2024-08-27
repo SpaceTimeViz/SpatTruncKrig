@@ -1,9 +1,9 @@
 # Ref: https://github.com/r-lib/actions/blob/v2/examples/pkgdown.yaml
 on:
   push:
-    branches: [main, master]
+    branches: [main, master, feature/*]
   pull_request:
-    branches: [main, master]
+    branches: [main, master, feature/*]
   release:
     types: [published]
   workflow_dispatch:
